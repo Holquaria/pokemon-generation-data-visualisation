@@ -3,8 +3,10 @@
 import { Canvas, useFrame } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
 import pokemonData from './data/pokemon-types-by-generation.json'
-import { OrbitControls, PerspectiveCamera, Text, Text3D } from '@react-three/drei'
-import { DoubleSide } from 'three'
+import { OrbitControls, PerspectiveCamera, SpotLight, Text, Text3D, useHelper } from '@react-three/drei'
+import { DoubleSide, SpotLightHelper } from 'three'
+import Link from 'next/link'
+import Pokeball from './Pokeball.jsx'
 
 type GenerationData = {
   generation: {
@@ -15,6 +17,27 @@ type GenerationData = {
   }
 }
 
+type colorsObject = {
+  grass: string,
+  poison: string,
+  psychic: string,
+  steel: string,
+  rock: string,
+  normal: string,
+  fairy: string,
+  ice: string,
+  dark: string,
+  ground: string,
+  dragon: string,
+  water: string,
+  ghost: string,
+  electric: string,
+  flying: string,
+  bug: string,
+  fighting: string,
+  fire: string
+}
+
 export default function Home() {
   const meshRef = useRef()
   const [hovered, setHover] = useState(false)
@@ -23,7 +46,7 @@ export default function Home() {
   const [generation, setGeneration] = useState(0)
   const [typeAndGeneration, setTypeAndGeneration] = useState([])
 
-  const colors = {
+  const colors: colorsObject = {
     grass: '#52b146',
     poison: '#9454cb',
     psychic: '#e96a8d',
@@ -56,7 +79,19 @@ export default function Home() {
     'Generation 9: Scarlet and Violet'
   ]
 
-  console.log('typeAndGeneration', typeAndGeneration)
+  const capitaliseFirstLetter = (string: string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+
+  const pokemonNameFormatting = (pokemonName: string) => {
+    const splitArray = pokemonName.split("-");
+    const formattedArray = splitArray.map((string) => {
+      return capitaliseFirstLetter(string);
+    });
+    return formattedArray.join(' ')
+  };
+
+
 
   const yAxis = [0, 5, 10, 15, 20, 25, 30, 35]
 
@@ -64,78 +99,99 @@ export default function Home() {
     setData(pokemonData)
   }, [])
 
-  const Box = (props: any) => {
+  // const Pokeball = ({color}) => {
+  //   if (color === undefined) {
+  //     color = 'red'
+  //   }
+  //   return <mesh>
+  //     <sphereGeometry />
+  //     <meshPhysicalMaterial color={color} />
+  //   </mesh>
+  // }
 
-    // useFrame((state, delta) => (meshRef.current.rotation.x += delta))
-    return (
+  const Bar = ({ props }: any) => {
+    const [active, setActive] = useState(false)
+    return <mesh>
       <mesh
-        {...props}
-        scale={active ? 1.5 : 1}
-        onClick={(event) => setActive(!active)}
-        onPointerOver={(event) => setHover(true)}
-        onPointerOut={(event) => setHover(false)}>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
+        key={props.key}
+        castShadow={true}
+        position={[(props.key * 2), (((props.type1 / 2))), active ? 0.5 : 0]}
+        onClick={(event) => setTypeAndGeneration(data[generation][generation].pokemon[props.type0])}
+        onPointerOver={event => setActive(!active)}
+        onPointerOut={(event) => setActive(!active)}
+      >
+        <boxGeometry args={[1, props.type1, 1]} />
+        <meshPhysicalMaterial color={colors[props.type0]} />
       </mesh>
-    )
+      <Text3D
+            key={props.type0}
+            font="./fonts/helvetiker_regular.typeface.json"
+            position={[((props.key * 2) - (props.type1 > 9 ? 0.8 : 0.4)), ((props.type1) + 1), active ? 0.5 : 0]}
+          >
+            {props.type1}
+            <meshPhysicalMaterial color='white' />
+          </Text3D>
+      <Pokeball props={{color: colors[props.type0], scale: 0.6, position: [((props.key * 2)), (props.type1 + 3), active ? 0.5 : 0]}} />
+    </mesh>
   }
 
-  const Bar = ({props}) => {
-    const [active, setActive] = useState(false)
-    return <mesh
-    key={props.key}
-    // scale={active ? 1.2 : 1}
-    position={[(props.key * 2), (((props.type1 / 2))), active ? 1 : 0]}
-    onClick={(event) => setTypeAndGeneration(data[generation][generation].pokemon[props.type0])}
-    onPointerOver={event => setActive(!active)}
-    onPointerOut={(event) => setActive(!active)}
-  >
-    <boxGeometry args={[1, props.type1, 1]} />
-    <meshPhysicalMaterial color={colors[props.type0]} />
-  </mesh>
+  const GraphAxes = () => {
+    return <mesh>
+      <mesh
+        position={[-2, 17, 0]}
+        castShadow={true}
+      >
+        <planeGeometry args={[0.5, 35]} />
+        <meshPhysicalMaterial color={'grey'} side={DoubleSide} />
+      </mesh>
+      {/* <mesh
+        position={[15, 17, -3]}
+        receiveShadow={true}
+      >
+        <planeGeometry args={[45, 45]} />
+        <meshPhysicalMaterial color={'red'} side={DoubleSide} />
+      </mesh> */}
+      <mesh>
+        {yAxis.map((number, i) => {
+          return <Text3D
+            key={number}
+            font="./fonts/helvetiker_regular.typeface.json"
+            position={[-5, ((i * 5)), 0]}
+            rotation={[0, 0, 0]}
+          >
+            {number}
+            <meshPhysicalMaterial color='white' />
+          </Text3D>
+        })}
+      </mesh>
+      <mesh
+        position={[16.75, -0.25, 0]}
+      >
+        <planeGeometry args={[38, 0.5]} />
+        <meshPhysicalMaterial color={'grey'} side={DoubleSide} />
+      </mesh>
+    </mesh>
   }
 
   const BarsByGeneration = () => {
     if (data) {
       return (
-        <mesh key={''} position={[-15, -10, 0]}>
-          <mesh
-            position={[-2, 17, 0]}
-          >
-            <planeGeometry args={[0.5, 35]} />
-            <meshPhysicalMaterial color={'grey'} side={DoubleSide} />
-          </mesh>
-          <mesh>
-            {yAxis.map((number, i) => {
-              return <Text3D
-                key={number}
-                font="./fonts/helvetiker_regular.typeface.json"
-                position={[-5, ((i * 5)), 0]}
-                rotation={[0, 0, 0]}
-              >
-                {number}
-                <meshPhysicalMaterial color='white'/>
-              </Text3D>
-            })}
-          </mesh>
-          <mesh
-            position={[16.75, -0.25, 0]}
-          >
-            <planeGeometry args={[38, 0.5]} />
-            <meshPhysicalMaterial color={'grey'} side={DoubleSide} />
-          </mesh>
+        <mesh key={''} position={[-15, -15, 0]}>
+          <GraphAxes />
           {(Object.entries(data[generation][generation].types)).map((type, j) => {
             return <mesh key={''}>
               <Text3D
                 font="./fonts/helvetiker_regular.typeface.json"
-                position={[(j * 2), -0.5, 0]}
+                position={[(j * 2) - 0.5, -1.5, 0]}
                 rotation={[0, 0, -1.5]}
+                castShadow={true}
+                scale={1.2}
               >
                 {/* <meshStandardMaterial /> */}
-                {type[0]}
-                <meshPhysicalMaterial color='white'/>
+                {capitaliseFirstLetter(type[0])}
+                <meshPhysicalMaterial color='white' />
               </Text3D>
-              <Bar props={{key: j, type0: type[0], type1: type[1]}} />
+              <Bar props={{ key: j, type0: type[0], type1: type[1] }} />
 
             </mesh>
           })}
@@ -146,47 +202,66 @@ export default function Home() {
 
   const GenerationSelector = () => {
     return (
-      <div className='flex flex-row gap-4 justify-center my-2 absolute left-1/2 -translate-x-1/2 z-20'>
-        <h2>Select A Generation:</h2>
-        {generations.map((gen, i) => {
-          return <button key={gen} onClick={() => setGeneration(i)}>{(i + 1)}</button>
-        })}
+      <div className='my-2'>
+        <div className='justify-center absolute top-8 left-1/2 -translate-x-1/2'>
+          <h2>Select A Generation:</h2>
+        </div>
+        <div className='flex flex-row gap-4 justify-center my-2 absolute left-1/2 top-12 -translate-x-1/2 z-20'>
+          {generations.map((gen, i) => {
+            return <button className='underline' key={gen} onClick={() => setGeneration(i)}>{(i + 1)}</button>
+          })}
+        </div>
       </div>
     )
   }
 
+  const Title = () => {
+    return <h1 className='justify-center flex absolute top-2 left-1/2 -translate-x-1/2 z-20 text-center'>
+      Pokemon type numbers
+    </h1>
+  }
+
   const GenerationHeader = () => {
-    return <h1 className='justify-center flex absolute top-10 left-1/2 -translate-x-1/2 z-20'>{generations[generation]}</h1>
+    return <h1 className='justify-center flex absolute top-20 left-1/2 -translate-x-1/2 z-20 text-center'>{generations[generation]}</h1>
   }
 
   const PokemonList = () => {
     if (typeAndGeneration.length !== 0) {
       return (
-      <div className='flex flex-row gap-2 flex-wrap justify-center flex absolute bottom-2 left-1/2 -translate-x-1/2 z-20'>
-        {typeAndGeneration.map((pokemon) => {
-          console.log(pokemon)
-          return <p key={pokemon}>{pokemon}</p>
-        })}
-      </div>
+        <div className='flex flex-row gap-2 flex-wrap justify-center flex absolute bottom-2 left-1/2 -translate-x-1/2 z-20 w-full'>
+          {typeAndGeneration.map((pokemon) => {
+            console.log(pokemon)
+            return <a className='underline' target='blank' href={`https://sparkly-selkie-21fcb9.netlify.app/pokemon/${pokemon}`} key={pokemon}>{pokemonNameFormatting(pokemon)}</a>
+          })}
+        </div>
       )
     } else {
-      return <div className='flex flex-row gap-2 flex-wrap justify-center flex absolute bottom-2 left-1/2 -translate-x-1/2 z-20'>
-        <p>Select a type to see the Pokemon added in this generation</p>
-    </div>
+      return <div className='flex flex-row gap-2 flex-wrap justify-center flex absolute bottom-2 left-1/2 -translate-x-1/2 z-20 w-full'>
+        <p className='text-center'>Select a type to see the Pokemon added in this generation</p>
+      </div>
     }
+  }
+
+  const Lights = () => {
+    const light = useRef()
+    // useHelper(light, SpotLightHelper, 'cyan')
+    return <group>
+      <ambientLight intensity={0.4} />
+      <spotLight ref={light} position={[15, 15, 40]} decay={0} />
+    </group>
   }
 
   return (
     <main className="w-full h-full">
+      <Title />
       <GenerationSelector />
       <GenerationHeader />
       <div className='z-10 w-full h-full'>
-        <Canvas>
-          <PerspectiveCamera makeDefault fov={75} near={0.1} far={1000} position={[15, 15, 40]} />
-          <ambientLight intensity={0.2} />
-          <directionalLight position={[15, 15, 40]} castShadow={true} />
-          {/* <Bars /> */}
+        <Canvas shadows>
+          <PerspectiveCamera makeDefault fov={75} near={0.1} far={1000} position={[0, 0, 40]} />
+          <Lights />
           <BarsByGeneration />
+          {/* <Pokeball props={{color: 'green', scale: 0.6, position: [0, 0, 0]}} /> */}
           <OrbitControls />
         </Canvas>
       </div>
