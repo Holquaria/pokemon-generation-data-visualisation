@@ -169,9 +169,8 @@ export default function Home() {
       )
     } else return <Text3D
     font="./fonts/helvetiker_regular.typeface.json"
-    position={[(j * 2) - 0.5, -1.5, 0]}
-    rotation={[0, 0, -1.5]}
-    castShadow={true}
+    position={[0, 0, 0]}
+    rotation={[0, 0, 0]}
     scale={1.2}
   >
     Loading...
