@@ -8,15 +8,6 @@ import { DoubleSide, SpotLightHelper } from 'three'
 import Link from 'next/link'
 import Pokeball from './Pokeball.jsx'
 
-type GenerationData = {
-  generation: {
-    types: {
-
-    },
-    pokemon: [string]
-  }
-}
-
 type colorsObject = {
   grass: string,
   poison: string,
@@ -99,16 +90,6 @@ export default function Home() {
     setData(pokemonData)
   }, [])
 
-  // const Pokeball = ({color}) => {
-  //   if (color === undefined) {
-  //     color = 'red'
-  //   }
-  //   return <mesh>
-  //     <sphereGeometry />
-  //     <meshPhysicalMaterial color={color} />
-  //   </mesh>
-  // }
-
   const Bar = ({ props }: any) => {
     const [active, setActive] = useState(false)
     return <mesh>
@@ -144,13 +125,6 @@ export default function Home() {
         <planeGeometry args={[0.5, 35]} />
         <meshPhysicalMaterial color={'grey'} side={DoubleSide} />
       </mesh>
-      {/* <mesh
-        position={[15, 17, -3]}
-        receiveShadow={true}
-      >
-        <planeGeometry args={[45, 45]} />
-        <meshPhysicalMaterial color={'red'} side={DoubleSide} />
-      </mesh> */}
       <mesh>
         {yAxis.map((number, i) => {
           return <Text3D
@@ -179,7 +153,7 @@ export default function Home() {
         <mesh key={''} position={[-15, -15, 0]}>
           <GraphAxes />
           {(Object.entries(data[generation][generation].types)).map((type, j) => {
-            return <mesh key={''}>
+            return <mesh key={type[0]}>
               <Text3D
                 font="./fonts/helvetiker_regular.typeface.json"
                 position={[(j * 2) - 0.5, -1.5, 0]}
@@ -187,7 +161,6 @@ export default function Home() {
                 castShadow={true}
                 scale={1.2}
               >
-                {/* <meshStandardMaterial /> */}
                 {capitaliseFirstLetter(type[0])}
                 <meshPhysicalMaterial color='white' />
               </Text3D>
@@ -197,7 +170,16 @@ export default function Home() {
           })}
         </mesh>
       )
-    }
+    } else return <Text3D
+    font="./fonts/helvetiker_regular.typeface.json"
+    position={[(j * 2) - 0.5, -1.5, 0]}
+    rotation={[0, 0, -1.5]}
+    castShadow={true}
+    scale={1.2}
+  >
+    Loading...
+    <meshPhysicalMaterial color='white' />
+  </Text3D>
   }
 
   const GenerationSelector = () => {
@@ -230,7 +212,6 @@ export default function Home() {
       return (
         <div className='flex flex-row gap-2 flex-wrap justify-center flex absolute bottom-2 left-1/2 -translate-x-1/2 z-20 w-full'>
           {typeAndGeneration.map((pokemon) => {
-            console.log(pokemon)
             return <a className='underline' target='blank' href={`https://sparkly-selkie-21fcb9.netlify.app/pokemon/${pokemon}`} key={pokemon}>{pokemonNameFormatting(pokemon)}</a>
           })}
         </div>
@@ -243,11 +224,9 @@ export default function Home() {
   }
 
   const Lights = () => {
-    const light = useRef()
-    // useHelper(light, SpotLightHelper, 'cyan')
     return <group>
       <ambientLight intensity={0.4} />
-      <spotLight ref={light} position={[15, 15, 40]} decay={0} />
+      <spotLight position={[15, 15, 40]} decay={0} />
     </group>
   }
 
@@ -261,12 +240,10 @@ export default function Home() {
           <PerspectiveCamera makeDefault fov={75} near={0.1} far={1000} position={[0, 0, 40]} />
           <Lights />
           <BarsByGeneration />
-          {/* <Pokeball props={{color: 'green', scale: 0.6, position: [0, 0, 0]}} /> */}
           <OrbitControls />
         </Canvas>
       </div>
       <PokemonList />
-      {/* <Data /> */}
     </main>
   )
 }
