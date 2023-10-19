@@ -30,9 +30,6 @@ type colorsObject = {
 }
 
 export default function Home() {
-  const meshRef = useRef()
-  const [hovered, setHover] = useState(false)
-  const [active, setActive] = useState(false)
   const [data, setData] = useState([] as any)
   const [generation, setGeneration] = useState(0)
   const [typeAndGeneration, setTypeAndGeneration] = useState([])
@@ -102,7 +99,7 @@ export default function Home() {
         onPointerOut={(event) => setActive(!active)}
       >
         <boxGeometry args={[1, props.type1, 1]} />
-        <meshPhysicalMaterial color={colors[props.type0]} />
+        <meshPhysicalMaterial color={colors[props.type0 as keyof colorsObject]} />
       </mesh>
       <Text3D
             key={props.type0}
@@ -112,7 +109,7 @@ export default function Home() {
             {props.type1}
             <meshPhysicalMaterial color='white' />
           </Text3D>
-      <Pokeball props={{color: colors[props.type0], scale: 0.6, position: [((props.key * 2)), (props.type1 + 3), active ? 0.5 : 0]}} />
+      <Pokeball props={{color: colors[props.type0 as keyof colorsObject], scale: 0.6, position: [((props.key * 2)), (props.type1 + 3), active ? 0.5 : 0]}} />
     </mesh>
   }
 
